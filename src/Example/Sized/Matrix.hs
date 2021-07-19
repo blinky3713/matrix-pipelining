@@ -115,7 +115,12 @@ type Counter aa_n bb_n aa_m = (Index aa_n, Index bb_n, Index aa_m)
 
 mmmult2d
   :: forall a_m a_n b_m b_n aa_m aa_n bb_m bb_n aa_sm aa_sn bb_sm bb_sn.
-     KnownNat aa_m
+     SystemClockResetEnable
+  => KnownNat a_m
+  => KnownNat a_n
+  => KnownNat b_m
+  => KnownNat b_n
+  => KnownNat aa_m
   => KnownNat aa_n
   => KnownNat bb_m
   => KnownNat bb_n
@@ -127,6 +132,10 @@ mmmult2d
   => 1 <= a_n
   => 1 <= b_m
   => 1 <= b_n
+  => 1 <= aa_m
+  => 1 <= aa_n
+  => 1 <= bb_m
+  => 1 <= bb_n
   => a_n ~ b_m
 
   -- Constrain submatrices:
@@ -153,7 +162,27 @@ mmmult2d
 
   -- Result returned after calculating for a while:
   -> Signal System (Maybe (Matrix a_m b_n Int))
-mmmult2d = undefined
+mmmult2d aa_m aa_sn bb_n ab =
+  let initialState =
+        ( Nothing :: Maybe (Matrix a_m a_n Int, Matrix b_m b_n Int)
+        , minBound :: Counter aa_n bb_n aa_m
+        , repeat (repeat 0) :: Matrix a_m b_n Int
+        )
+      --splitAB
+      --  :: (Matrix a_m a_n Int, Matrix b_m b_n Int)
+      --  -> (Matrix aa_m aa_n (Matrix aa_sm aa_sn Int), Matrix bb_m bb_n (Matrix bb_sm bb_sn Int))
+      splitAB (a, b) =
+        ( splitMatrix aa_m (SNat @aa_n) (SNat @aa_sm) aa_sn a
+        , splitMatrix (SNat @bb_m) bb_n (SNat @bb_sm) (SNat @bb_sn) b
+        )
+  in mealy mmmult2dmealy initialState (fmap splitAB <$> ab)
+  where
+    -- mmmult2dmealy
+    --  :: (Maybe (Matrix a_m a_n Int, Matrix b_m b_n Int), Counter aa_n bb_n aa_m, Matrix a_m b_n Int)
+    --  -> Maybe (Matrix a_m a_n Int, Matrix b_m b_n Int)
+    --  -> Maybe (Matrix a_m b_n Int)
+    mmmult2dmealy = undefined
+
 
 
 {-
