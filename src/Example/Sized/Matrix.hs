@@ -1,6 +1,7 @@
 module Example.Sized.Matrix where
 
 import Clash.Prelude hiding (transpose)
+import qualified Debug.Trace as Trace
 
 type Matrix m n a = Vec m (Vec n a) -- n x m matrix
 
@@ -14,6 +15,21 @@ dot
   -> a
 dot a b = sum $ zipWith (*) a b
 
+vAdd
+  :: forall a n.
+     Num a
+  => Vec n a
+  -> Vec n a
+  -> Vec n a
+vAdd = zipWith (+)
+
+mAdd
+  :: forall a m n.
+     Num a
+  => Matrix m n a
+  -> Matrix m n a
+  -> Matrix m n a
+mAdd = zipWith vAdd
 
 mvMult
   :: forall m n a.
@@ -85,13 +101,11 @@ splitMatrix
   => 1 <= sm
   => (aa_m * sm) ~ m
   => (aa_n * sn) ~ n
-  => SNat aa_m
-  -> SNat aa_n
-  -> SNat sm
+  => SNat sm
   -> SNat sn
   -> Matrix m n a
   -> Matrix aa_m aa_n (Matrix sm sn a)
-splitMatrix _ _ sm sn =
+splitMatrix sm sn =
   map (traverse $ unconcat sn) . unconcat sm
 
 unsplitMatrix
@@ -103,13 +117,24 @@ unsplitMatrix
   => 1 <= aa_n
   => (aa_m * sm) ~ m
   => (aa_n * sn) ~ n
-  => SNat aa_m
-  -> SNat aa_n
-  -> SNat sm
-  -> SNat sn
-  -> Matrix aa_m aa_n (Matrix sm sn a)
+  => Matrix aa_m aa_n (Matrix sm sn a)
   -> Matrix m n a
-unsplitMatrix _ _ _ _ = concatMap (map concat . sequenceA)
+unsplitMatrix = concatMap (map concat . sequenceA)
+
+replaceMatrixElement
+  :: forall m n sm sn a.
+     KnownNat m
+  => KnownNat n
+  => Matrix m n (Matrix sm sn a)
+  -> Index m
+  -> Index n
+  -> Matrix sm sn a
+  -> Matrix m n (Matrix sm sn a)
+replaceMatrixElement a m n _sub =
+  let sub' = replace n _sub (a !! m)
+  in replace m sub' a
+
+--------------------------------------------------------------------------------
 
 type Counter aa_n bb_n aa_m = (Index aa_n, Index bb_n, Index aa_m)
 
@@ -162,41 +187,62 @@ mmmult2d
 
   -- Result returned after calculating for a while:
   -> Signal System (Maybe (Matrix a_m b_n Int))
-mmmult2d aa_m aa_sn bb_n ab =
-  let initialState =
-        ( Nothing :: Maybe (Matrix a_m a_n Int, Matrix b_m b_n Int)
-        , minBound :: Counter aa_n bb_n aa_m
-        , repeat (repeat 0) :: Matrix a_m b_n Int
-        )
-      --splitAB
-      --  :: (Matrix a_m a_n Int, Matrix b_m b_n Int)
-      --  -> (Matrix aa_m aa_n (Matrix aa_sm aa_sn Int), Matrix bb_m bb_n (Matrix bb_sm bb_sn Int))
+mmmult2d _ aa_sn _ ab =
+  let
+      splitAB
+        :: (Matrix a_m a_n Int, Matrix b_m b_n Int)
+        -> (Matrix aa_m aa_n (Matrix aa_sm aa_sn Int), Matrix bb_m bb_n (Matrix bb_sm bb_sn Int))
       splitAB (a, b) =
-        ( splitMatrix aa_m (SNat @aa_n) (SNat @aa_sm) aa_sn a
-        , splitMatrix (SNat @bb_m) bb_n (SNat @bb_sm) (SNat @bb_sn) b
+        ( splitMatrix (SNat @aa_sm) aa_sn a
+        , splitMatrix (SNat @bb_sm) (SNat @bb_sn) b
         )
   in mealy mmmult2dmealy initialState (fmap splitAB <$> ab)
   where
-    -- mmmult2dmealy
-    --  :: (Maybe (Matrix a_m a_n Int, Matrix b_m b_n Int), Counter aa_n bb_n aa_m, Matrix a_m b_n Int)
-    --  -> Maybe (Matrix a_m a_n Int, Matrix b_m b_n Int)
-    --  -> Maybe (Matrix a_m b_n Int)
-    mmmult2dmealy = undefined
+    nullMatrix :: Matrix aa_m bb_n (Matrix aa_sm bb_sn Int)
+    nullMatrix = repeat $ repeat $ repeat $ repeat 0
 
+    initialState
+      :: ( Maybe (Matrix aa_m aa_n (Matrix aa_sm aa_sn Int), Matrix bb_m bb_n (Matrix bb_sm bb_sn Int))
+         , Counter aa_n bb_n aa_m
+         , Matrix aa_m bb_n (Matrix aa_sm bb_sn Int)
+         )
+    initialState = (Nothing, minBound, nullMatrix)
 
+    incCounterWithWrap ctr@(a,b,c)
+      | ctr == maxBound = minBound
+      | a == maxBound && b == maxBound = (a,b,c+1)
+      | a == maxBound = (a,b+1,c)
+      | otherwise = (a+1,b,c)
 
-{-
-mealySource#
+    mmmult2dmealy (Nothing, _, _) Nothing = ((Nothing, minBound, nullMatrix), Nothing)
+    mmmult2dmealy _ matrices@(Just _) = ((matrices, minBound, nullMatrix), Nothing)
+    mmmult2dmealy (matrices@(Just (matrixAA, matrixBB)), counter, matrixRR) _ = (newState, output)
+      where
+        done = counter == maxBound
+        counter' = Trace.traceShow counter $ incCounterWithWrap counter
 
-:: (HiddenClockResetEnable dom, NFDataX s)
-=> (s -> i -> (s, o))
-Transfer function in mealy machine form: state -> input -> (newstate,output)
+        newState
+          | done = initialState
+          | otherwise = (matrices, counter', matrixRR')
 
--> s
-Initial state
+        output
+          | done = Just $ unsplitMatrix matrixRR'
+          | otherwise = Nothing
 
--> Signal dom i -> Signal dom o
-Synchronous sequential function with input and output matching that of the mealy machine
+        (aColI, _, aRowI) = counter
+        (bRowI, bColI, _) = counter
+        (_, rColI, rRowI) = counter
 
-Create a synchronous function from a combinational function describing a mealy machine
--}
+        subA :: Matrix aa_sm aa_sn Int
+        subA = matrixAA !! aRowI !! aColI
+
+        subB :: Matrix bb_sm bb_sn Int
+        subB = matrixBB !! bRowI !! bColI
+
+        subR :: Matrix aa_sm bb_sn Int
+        subR = matrixRR !! rRowI !! rColI
+
+        subR' = subR `mAdd` mmMult subA subB
+
+        matrixRR' :: Matrix aa_m bb_n (Matrix aa_sm bb_sn Int)
+        matrixRR' = replaceMatrixElement matrixRR rRowI rColI subR'

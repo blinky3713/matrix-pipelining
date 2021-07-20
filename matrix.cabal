@@ -44,6 +44,7 @@ common common-options
   ghc-options:
     -Wall -Wcompat
     -haddock
+    -fconstraint-solver-iterations=10
 
     -- Plugins to support type-level constraint solving on naturals
     -fplugin GHC.TypeLits.Extra.Solver

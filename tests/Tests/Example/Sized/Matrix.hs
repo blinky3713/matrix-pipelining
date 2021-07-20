@@ -2,6 +2,7 @@ module Tests.Example.Sized.Matrix where
 
 import Clash.Prelude hiding (transpose)
 
+import qualified Data.List as L
 import Test.Hspec
 import Test.QuickCheck
 import Example.Sized.Matrix
@@ -16,7 +17,7 @@ spec = hspec $ do
       dot a b `shouldBe` 32
 
     it "Can multiply a matrix times a sized vector" $ do
-      let m :: Matrix 3 3
+      let m :: Matrix 3 3 Int
           m = $(listToVecTH @Int [1,2,3]) :>
                 $(listToVecTH @Int [2,3,0]) :>
                 $(listToVecTH @Int [3,0,1]) :>
@@ -28,18 +29,18 @@ spec = hspec $ do
       mvMult m v `shouldBe` mv
 
   it "Can take a transpose of a sized row vector" $ do
-    let m :: Matrix 1 3
+    let m :: Matrix 1 3 Int
         m = $(listToVecTH @Int [1,2,3]) :> Nil
-        mT :: Matrix 3 1
+        mT :: Matrix 3 1 Int
         mT = $(listToVecTH @Int [1]) :> $(listToVecTH @Int [2]) :> $(listToVecTH @Int [3]) :> Nil
     transpose m `shouldBe` mT
 
   it "Can take a transpose of a sized 3x2" $ do
-    let m :: Matrix 2 3
+    let m :: Matrix 2 3 Int
         m = $(listToVecTH @Int [1,2,3]) :>
               $(listToVecTH @Int [4,5,6]) :>
               Nil
-        mT :: Matrix 3 2
+        mT :: Matrix 3 2 Int
         mT = $(listToVecTH @Int [1,4]) :>
                $(listToVecTH @Int [2,5]) :>
                $(listToVecTH @Int [3,6]) :>
@@ -47,26 +48,40 @@ spec = hspec $ do
     transpose m `shouldBe` mT
 
 {-
-|1 2 3|   |-1 0 1|   |1  5 6|
-|2 3 0| x |1  1 1| = |1  3 5|
-|3 0 1|   |0  1 1|   |-3 1 4|
+|1 2 3 4|   |-1 0 1 0|   |-3 9 2 -1|
+|2 3 4 0| x |1 1 1 1 | = |1 7 9 -1|
+|3 4 0 1|   |0 1 1 -1|   |0 5 6 4|
+|4,0,1,2|   |-1,1,-1,0|  |-6 3 3 -1
 -}
 
-  it "Can multiply a matrix times a matrix" $ do
-      let m :: Matrix 3 3
-          m = $(listToVecTH @Int [1,2,3]) :>
-                $(listToVecTH @Int [2,3,0]) :>
-                $(listToVecTH @Int [3,0,1]) :>
-                Nil
-          m' :: Matrix 3 3
-          m' = $(listToVecTH @Int [-1,0,1]) :>
-                $(listToVecTH @Int [1,1,1]) :>
-                $(listToVecTH @Int [0,1,1]) :>
-                Nil
-          mm' :: Matrix 3 3
-          mm' = $(listToVecTH @Int [1,5,6]) :>
-                $(listToVecTH @Int [1,3,5]) :>
-                $(listToVecTH @Int [-3,1,4]) :>
-                Nil
+  let m :: Matrix 4 4 Int
+      m = $(listToVecTH @Int   [1,2,3,4]) :>
+            $(listToVecTH @Int [2,3,4,0]) :>
+            $(listToVecTH @Int [3,4,0,1]) :>
+            $(listToVecTH @Int [4,0,1,2]) :>
+            Nil
+      m' :: Matrix 4 4 Int
+      m' = $(listToVecTH @Int [-1,0,1,0]) :>
+            $(listToVecTH @Int [1,1,1,1]) :>
+            $(listToVecTH @Int [0,1,1,-1]) :>
+            $(listToVecTH @Int [-1,1,-1,0]) :>
+            Nil
+      mm' :: Matrix 4 4 Int
+      mm' = $(listToVecTH @Int [-3,9,2,-1]) :>
+            $(listToVecTH @Int [1,7,9,-1]) :>
+            $(listToVecTH @Int [0,5,6,4]) :>
+            $(listToVecTH @Int [-6,3,3,-1]) :>
+            Nil
+  it "Can multiply a matrix times a matrix using mmMult" $ do
       mmMult m m' `shouldBe` mm'
 
+  it "Can multiply a matrix times a matrix using signals" $ do
+      let input = fromList $ Nothing : Nothing : Just (m,m') : L.repeat Nothing
+      Just mm' `shouldBe` takeFirstJust (sampleN 100 (mmmult2d (SNat @2) (SNat @2) (SNat @2) input))
+
+takeFirstJust
+  :: [Maybe a]
+  -> Maybe a
+takeFirstJust [] = Nothing
+takeFirstJust (Just a : rest) = Just a
+takeFirstJust (_ : rest) = takeFirstJust rest
