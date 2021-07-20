@@ -130,9 +130,9 @@ replaceMatrixElement
   -> Index n
   -> Matrix sm sn a
   -> Matrix m n (Matrix sm sn a)
-replaceMatrixElement a m n _sub =
-  let sub' = replace n _sub (a !! m)
-  in replace m sub' a
+replaceMatrixElement a rowIndex colIndex _sub =
+  let sub' = replace colIndex _sub (a !! rowIndex)
+  in replace rowIndex sub' a
 
 --------------------------------------------------------------------------------
 
@@ -210,8 +210,8 @@ mmmult2d _ aa_sn _ ab =
 
     incCounterWithWrap ctr@(a,b,c)
       | ctr == maxBound = minBound
-      | a == maxBound && b == maxBound = (a,b,c+1)
-      | a == maxBound = (a,b+1,c)
+      | a == maxBound && b == maxBound = (0,0,c+1)
+      | a == maxBound = (0,b+1,c)
       | otherwise = (a+1,b,c)
 
     mmmult2dmealy (Nothing, _, _) Nothing = ((Nothing, minBound, nullMatrix), Nothing)
@@ -219,7 +219,7 @@ mmmult2d _ aa_sn _ ab =
     mmmult2dmealy (matrices@(Just (matrixAA, matrixBB)), counter, matrixRR) _ = (newState, output)
       where
         done = counter == maxBound
-        counter' = Trace.traceShow counter $ incCounterWithWrap counter
+        counter' = incCounterWithWrap counter
 
         newState
           | done = initialState

@@ -72,6 +72,10 @@ spec = hspec $ do
             $(listToVecTH @Int [0,5,6,4]) :>
             $(listToVecTH @Int [-6,3,3,-1]) :>
             Nil
+
+  it "Can split and unsplit a matrix" $ do
+    unsplitMatrix (splitMatrix (SNat @2) (SNat @2) m) `shouldBe` m
+
   it "Can multiply a matrix times a matrix using mmMult" $ do
       mmMult m m' `shouldBe` mm'
 
