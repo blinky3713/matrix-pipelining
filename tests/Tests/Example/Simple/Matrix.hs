@@ -1,10 +1,10 @@
 module Tests.Example.Simple.Matrix where
 
-import Prelude
+import           Prelude
 
-import Test.Hspec
-import Test.QuickCheck
-import Example.Simple.Matrix
+import           Example.Simple.Matrix
+import           Test.Hspec
+import           Test.QuickCheck
 
 spec :: IO ()
 spec = hspec $ do

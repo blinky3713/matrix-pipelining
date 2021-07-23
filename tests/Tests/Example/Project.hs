@@ -1,17 +1,17 @@
 module Tests.Example.Project where
 
-import Prelude
+import           Prelude
 
-import Test.Tasty
-import Test.Tasty.TH
-import Test.Tasty.Hedgehog
+import           Test.Tasty
+import           Test.Tasty.Hedgehog
+import           Test.Tasty.TH
 
-import Hedgehog ((===))
-import qualified Hedgehog as H
-import qualified Hedgehog.Gen as Gen
-import qualified Hedgehog.Range as Range
+import           Hedgehog            ((===))
+import qualified Hedgehog            as H
+import qualified Hedgehog.Gen        as Gen
+import qualified Hedgehog.Range      as Range
 
-import Example.Project (plus)
+import           Example.Project     (plus)
 
 
 prop_plusIsCommutative :: H.Property

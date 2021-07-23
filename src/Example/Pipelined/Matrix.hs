@@ -1,4 +1,7 @@
-module Example.Pipelined.Matrix where
+module Example.Pipelined.Matrix
+  ( module Example.Pipelined.Matrix
+  , Matrix
+  ) where
 
 import           Clash.Prelude               hiding (transpose)
 import qualified Clash.Signal.Delayed.Bundle as DBundle

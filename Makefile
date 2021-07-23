@@ -11,5 +11,5 @@ install: ## build binaries
 #####################
 
 stylish: ## Run stylish-haskell over all haskell projects
-	find src test \
+	find src tests \
 	-name "*.hs" | xargs stack exec stylish-haskell -- -c ./.stylish_haskell.yaml -i
