@@ -1,7 +1,7 @@
 module Example.Simple.Matrix where
 
-import Prelude
-import Control.Monad
+import           Control.Monad
+import           Prelude
 
 type Vector = [Int]
 

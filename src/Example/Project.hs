@@ -1,6 +1,6 @@
 module Example.Project (topEntity, plus) where
 
-import Clash.Prelude
+import           Clash.Prelude
 
 -- | Add two numbers. Example:
 --

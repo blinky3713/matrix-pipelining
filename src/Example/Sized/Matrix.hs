@@ -1,7 +1,7 @@
 module Example.Sized.Matrix where
 
-import Clash.Prelude hiding (transpose)
-import qualified Debug.Trace as Trace
+import           Clash.Prelude hiding (transpose)
+import qualified Debug.Trace   as Trace
 
 type Matrix m n a = Vec m (Vec n a) -- n x m matrix
 
@@ -122,14 +122,14 @@ unsplitMatrix
 unsplitMatrix = concatMap (map concat . sequenceA)
 
 replaceMatrixElement
-  :: forall m n sm sn a.
+  :: forall m n a.
      KnownNat m
   => KnownNat n
-  => Matrix m n (Matrix sm sn a)
+  => Matrix m n a
   -> Index m
   -> Index n
-  -> Matrix sm sn a
-  -> Matrix m n (Matrix sm sn a)
+  -> a
+  -> Matrix m n a
 replaceMatrixElement a rowIndex colIndex _sub =
   let sub' = replace colIndex _sub (a !! rowIndex)
   in replace rowIndex sub' a
