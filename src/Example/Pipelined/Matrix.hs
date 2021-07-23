@@ -153,7 +153,7 @@ mmmult2d _ aa_sn _ ab =
 
         newState
           :: ( Maybe (Matrix aa_m aa_n (Matrix aa_sm aa_sn Int), Matrix bb_m bb_n (Matrix bb_sm bb_sn Int))
-             , Counter a_n b_n a_m aa_sm bb_sn
+             , Counter aa_n bb_n aa_m aa_sm bb_sn
              )
         newState
           | counter == maxBound = (Nothing, succWrap counter)
