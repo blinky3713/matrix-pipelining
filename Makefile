@@ -13,3 +13,6 @@ install: ## build binaries
 stylish: ## Run stylish-haskell over all haskell projects
 	find src tests \
 	-name "*.hs" | xargs stack exec stylish-haskell -- -c ./.stylish_haskell.yaml -i
+
+hlint: ## Run hlint on all haskell projects
+	stack exec hlint -- -e hs -h .hlint.yaml src

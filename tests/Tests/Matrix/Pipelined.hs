@@ -5,7 +5,6 @@ import           Clash.Prelude    hiding (transpose)
 import qualified Data.List        as L
 import           Matrix.Pipelined
 import           Test.Hspec
-import           Test.QuickCheck
 
 spec :: IO ()
 spec = hspec $ do
@@ -45,5 +44,5 @@ takeFirstJust
   :: [Maybe a]
   -> Maybe a
 takeFirstJust []              = Nothing
-takeFirstJust (Just a : rest) = Just a
+takeFirstJust (Just a : _)    = Just a
 takeFirstJust (_ : rest)      = takeFirstJust rest

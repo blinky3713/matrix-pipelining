@@ -4,7 +4,6 @@ import           Prelude
 
 import           Matrix.Simple
 import           Test.Hspec
-import           Test.QuickCheck
 
 spec :: IO ()
 spec = hspec $ do
