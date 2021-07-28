@@ -1,7 +1,5 @@
 import           Prelude
 
-import           Test.Tasty
-
 import           Tests.Matrix.Pipelined as Pipelined
 import           Tests.Matrix.Simple    as Simple
 import           Tests.Matrix.Sized     as Sized
