@@ -1,9 +1,9 @@
-module Tests.Example.Sized.Matrix where
+module Tests.Matrix.Sized where
 
 import           Clash.Prelude        hiding (transpose)
 
 import qualified Data.List            as L
-import           Example.Sized.Matrix
+import           Matrix.Sized
 import           Test.Hspec
 import           Test.QuickCheck
 

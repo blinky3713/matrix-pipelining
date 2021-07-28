@@ -1,12 +1,12 @@
-module Example.Pipelined.Matrix
-  ( module Example.Pipelined.Matrix
+module Matrix.Pipelined
+  ( module Matrix.Pipelined
   , Matrix
   ) where
 
 import           Clash.Prelude               hiding (transpose)
 import qualified Clash.Signal.Delayed.Bundle as DBundle
 import           Data.Maybe                  (fromJust)
-import           Example.Sized.Matrix        (Matrix, replaceMatrixElement,
+import           Matrix.Sized                (Matrix, replaceMatrixElement,
                                               splitMatrix, transpose,
                                               unsplitMatrix)
 

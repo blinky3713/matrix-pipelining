@@ -1,6 +1,5 @@
-module Example.Simple.Matrix where
+module Matrix.Simple where
 
-import           Control.Monad
 import           Prelude
 
 type Vector = [Int]

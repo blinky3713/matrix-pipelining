@@ -1,9 +1,9 @@
-module Tests.Example.Pipelined.Matrix where
+module Tests.Matrix.Pipelined where
 
-import           Clash.Prelude            hiding (transpose)
+import           Clash.Prelude    hiding (transpose)
 
-import qualified Data.List                as L
-import           Example.Pipelined.Matrix
+import qualified Data.List        as L
+import           Matrix.Pipelined
 import           Test.Hspec
 import           Test.QuickCheck
 

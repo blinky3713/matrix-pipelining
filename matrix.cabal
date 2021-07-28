@@ -69,20 +69,13 @@ common common-options
     ghc-typelits-knownnat
 
 
-custom-setup
-  setup-depends:
-    base          >= 4.11 && <5,
-    Cabal         >= 2.4,
-    cabal-doctest >= 1.0.1 && <1.1
-
 library
   import: common-options
   hs-source-dirs: src
   exposed-modules:
-    Example.Project
-    Example.Simple.Matrix
-    Example.Sized.Matrix
-    Example.Pipelined.Matrix
+    Matrix.Simple
+    Matrix.Sized
+    Matrix.Pipelined
   default-language: Haskell2010
 
 -- Builds the executable 'clash', with matrix project in scope
@@ -101,19 +94,6 @@ executable clashi
     ghc-options: -dynamic
   build-depends: base, clash-ghc, matrix
 
-test-suite doctests
-  import:           common-options
-  type:             exitcode-stdio-1.0
-  default-language: Haskell2010
-  main-is:          doctests.hs
-  hs-source-dirs:   tests
-
-  build-depends:
-    base,
-    matrix,
-    process,
-    doctest >= 0.16.1 && < 0.18
-
 test-suite test-library
   import: common-options
   default-language: Haskell2010
@@ -122,10 +102,9 @@ test-suite test-library
   ghc-options: -threaded
   main-is: unittests.hs
   other-modules:
-    Tests.Example.Project
-    Tests.Example.Simple.Matrix
-    Tests.Example.Sized.Matrix
-    Tests.Example.Pipelined.Matrix
+    Tests.Matrix.Simple
+    Tests.Matrix.Sized
+    Tests.Matrix.Pipelined
   build-depends:
     hspec,
     matrix,

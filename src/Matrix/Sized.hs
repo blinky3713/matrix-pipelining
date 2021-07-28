@@ -1,7 +1,6 @@
-module Example.Sized.Matrix where
+module Matrix.Sized where
 
 import           Clash.Prelude hiding (transpose)
-import qualified Debug.Trace   as Trace
 
 type Matrix m n a = Vec m (Vec n a) -- n x m matrix
 

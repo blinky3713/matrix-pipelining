@@ -1,8 +1,8 @@
-module Tests.Example.Simple.Matrix where
+module Tests.Matrix.Simple where
 
 import           Prelude
 
-import           Example.Simple.Matrix
+import           Matrix.Simple
 import           Test.Hspec
 import           Test.QuickCheck
 
